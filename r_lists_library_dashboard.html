@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R Project – Library Catalog with Lists</title>
+<style>
+  :root{
+    --bg:#faf6f0; --card:#ffffff; --ink:#2a2118; --muted:#8a7a68; --line:#eadfce;
+    --accent:#b45309; --accent-soft:#fdeedb;
+    --good:#16a34a; --bad:#dc2626; --warn:#d97706;
+    --code-bg:#1f1a14; --code-ink:#f3ebdf;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#17130e; --card:#221c14; --ink:#f3ebdf; --muted:#b3a38e; --line:#3a3023; --accent:#f59e0b; --accent-soft:#3b2c14; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  header{padding:28px 24px 0;max-width:1100px;margin:0 auto}
+  header h1{margin:0;font-size:1.65rem;letter-spacing:-.01em}
+  header p{margin:4px 0 0;color:var(--muted)}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .badge{background:var(--accent-soft);color:var(--accent);padding:3px 11px;border-radius:99px;font-size:.78rem;font-weight:600}
+  nav{max-width:1100px;margin:18px auto 0;padding:0 24px;display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+  nav button{background:none;border:0;color:var(--muted);padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+  nav button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  main{max-width:1100px;margin:0 auto;padding:22px 24px 60px}
+  section.tab{display:none}
+  section.tab.on{display:block}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .kpi .l{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .kpi .v{font-size:1.6rem;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .kpi .s{font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-width:0}
+  .card h3{margin:0 0 10px;font-size:.98rem}
+  .c7{grid-column:span 7}.c5{grid-column:span 5}.c6{grid-column:span 6}.c12{grid-column:span 12}
+  @media(max-width:860px){.c7,.c5,.c6{grid-column:span 12}}
+  svg{width:100%;height:auto;display:block}
+  svg text{fill:var(--muted);font-size:11px;font-family:inherit}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-top:8px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  th.r{text-align:right}
+  .pill{padding:3px 11px;border-radius:99px;font-size:.76rem;font-weight:700;color:#fff;border:0;cursor:pointer;font-family:inherit}
+  .pill.yes{background:var(--good)}.pill.no{background:var(--warn)}
+  .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:6px}
+  .x:hover:not(:disabled){color:var(--bad);background:var(--accent-soft)}
+  .x:disabled{opacity:.3;cursor:not-allowed}
+  .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+  .form label{font-size:.78rem;color:var(--muted);font-weight:600;display:block;margin-bottom:3px}
+  .form input[type=text],.form input[type=number],select{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit}
+  .chk{display:flex;align-items:center;gap:6px;padding-bottom:8px}
+  .btn{background:var(--accent);color:#fff;border:0;padding:8px 16px;border-radius:8px;font:inherit;font-weight:600;cursor:pointer}
+  .btn.alt{background:var(--accent-soft);color:var(--accent)}
+  .msg{color:var(--bad);font-size:.85rem;min-height:1.2em;margin-top:6px}
+  .last{margin-top:12px;padding:10px 14px;background:var(--accent-soft);border-radius:10px;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;overflow-x:auto;white-space:pre}
+  .lbl{font-size:.76rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:4px}
+  pre.console,pre.code,pre.acc{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:16px 18px;overflow:auto;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:0;max-height:520px}
+  pre.acc{max-height:none;margin-top:10px}
+  .code .k{color:#fcd34d}.code .s{color:#86efac}.code .c{color:#8a7a68;font-style:italic}.code .n{color:#fdba74}.code .f{color:#7dd3fc}
+  .acc .cmd{color:#7dd3fc}
+  .row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+  .concepts{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px}
+  .concepts .card h3{color:var(--accent)}
+  code.i,.concepts code,.steps code{background:var(--accent-soft);color:var(--accent);padding:1px 6px;border-radius:5px;font-size:.85em}
+  .concepts ul{padding-left:18px;margin:8px 0 0}
+  .steps li{margin-bottom:10px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Library Catalog</h1>
+  <p>A very simple R mini project built on <b>lists</b> — create, access, add, change, remove — with a live dashboard.</p>
+  <div class="badges"><span class="badge">list()</span><span class="badge">$ and [[ ]]</span><span class="badge">add · change · remove</span><span class="badge">list of lists</span><span class="badge">sapply() · Filter()</span></div>
+</header>
+
+<nav id="nav">
+  <button data-t="dash" class="on">Dashboard</button>
+  <button data-t="code">R Code</button>
+  <button data-t="concepts">Concepts Used</button>
+  <button data-t="run">How to Run</button>
+</nav>
+
+<main>
+
+<!-- ============ DASHBOARD ============ -->
+<section id="dash" class="tab on">
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <div class="card c7"><h3>Pages per book <small style="color:var(--muted);font-weight:400">(sapply)</small></h3><div id="pagesChart"></div>
+      <div class="legend"><span><i style="background:var(--good)"></i>Available</span><span><i style="background:var(--warn)"></i>Issued</span></div></div>
+    <div class="card c5">
+      <h3>Availability <small style="color:var(--muted);font-weight:400">(Filter)</small></h3><div id="availChart"></div>
+      <h3 style="margin-top:18px">Look inside the list <small style="color:var(--muted);font-weight:400">(access practice)</small></h3>
+      <div class="two">
+        <div><div class="lbl">Book number</div><select id="aIdx"></select></div>
+        <div><div class="lbl">Field</div><select id="aFld"><option>title</option><option>author</option><option>year</option><option>pages</option><option>available</option></select></div>
+      </div>
+      <pre class="acc" id="acc"></pre>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card c12">
+      <h3>Books list <small style="color:var(--muted);font-weight:400">— click a status to toggle it, ✕ to remove a book</small></h3>
+      <div class="tbl-wrap"><table id="tbl"></table></div>
+      <div class="last" id="last"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card c12">
+      <h3>Add a book <small style="color:var(--muted);font-weight:400">— appends a new item to the list</small></h3>
+      <div class="form">
+        <div><label for="fT">Title</label><input type="text" id="fT" placeholder="e.g. Gitanjali"></div>
+        <div><label for="fA">Author</label><input type="text" id="fA" placeholder="e.g. Rabindranath Tagore"></div>
+        <div><label for="fY">Year</label><input type="number" id="fY" value="2020" min="1000" max="2100"></div>
+        <div><label for="fP">Pages</label><input type="number" id="fP" value="250" min="1" max="5000"></div>
+        <label class="chk"><input type="checkbox" id="fV" checked> Available</label>
+        <div><button class="btn" id="add">Add book</button> <button class="btn alt" id="reset">Reset</button></div>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card c12">
+      <h3>Console output <small style="color:var(--muted);font-weight:400">— what <code class="i">Rscript library_catalog.R</code> prints for the books above</small></h3>
+      <pre class="console" id="console"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CODE ============ -->
+<section id="code" class="tab">
+  <div class="row">
+    <button class="btn" id="dl">⬇ Download library_catalog.R</button>
+    <button class="btn alt" id="cp">Copy code</button>
+    <small style="color:var(--muted)">The <code class="i">books</code> list follows the books currently on your dashboard.</small>
+  </div>
+  <pre class="code" id="codeview"></pre>
+</section>
+
+<!-- ============ CONCEPTS ============ -->
+<section id="concepts" class="tab">
+  <div class="concepts">
+    <div class="card"><h3>1 · What is a list?</h3>
+      <ul>
+        <li>A list holds items of <b>different types</b> together: text, numbers, TRUE/FALSE, even vectors and other lists.</li>
+        <li><code>info &lt;- list(name = "City Library", open = TRUE)</code></li>
+        <li>A vector must hold one type only; a list does not.</li>
+      </ul></div>
+    <div class="card"><h3>2 · Accessing items</h3>
+      <ul>
+        <li><code>info$name</code> – by name.</li>
+        <li><code>info[["city"]]</code> – by name with double brackets.</li>
+        <li><code>books[[2]]</code> – by position.</li>
+        <li><code>books[[1]]$title</code> – item inside an item.</li>
+      </ul></div>
+    <div class="card"><h3>3 · Changing a list</h3>
+      <ul>
+        <li>Add: <code>info$members &lt;- 250</code></li>
+        <li>Change: <code>info$city &lt;- "Madurai"</code></li>
+        <li>Remove: <code>info$open &lt;- NULL</code></li>
+        <li>Append to a list of lists: <code>books[[length(books) + 1]] &lt;- list(...)</code></li>
+        <li>Try these with the Add and ✕ buttons on the dashboard.</li>
+      </ul></div>
+    <div class="card"><h3>4 · List of lists</h3>
+      <ul>
+        <li><code>books</code> is a list where every item is itself a list (one book).</li>
+        <li>This is how R stores records without a data frame.</li>
+        <li><code>seq_along(books)</code> gives 1, 2, 3 … to loop over.</li>
+      </ul></div>
+    <div class="card"><h3>5 · Working on every item</h3>
+      <ul>
+        <li><code>sapply(books, function(b) b$pages)</code> – pull one field from every book into a vector.</li>
+        <li><code>Filter(function(b) b$available, books)</code> – keep only matching books.</li>
+        <li><code>for (b in books)</code> – loop over each item.</li>
+      </ul></div>
+    <div class="card"><h3>6 · Handy functions</h3>
+      <ul>
+        <li><code>length()</code> – how many items.</li>
+        <li><code>names()</code> – the item names.</li>
+        <li><code>str()</code> – show the structure of a list (see the access practice box).</li>
+      </ul></div>
+    <div class="card" style="grid-column:1/-1"><h3>Ideas to extend the project</h3>
+      <ul>
+        <li>Add a <code>borrower</code> field and list who has which book.</li>
+        <li>Sort books by pages: <code>books[order(sapply(books, function(b) b$pages))]</code></li>
+        <li>Turn the list into a table: <code>do.call(rbind, lapply(books, as.data.frame))</code></li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- ============ RUN ============ -->
+<section id="run" class="tab">
+  <div class="card">
+    <h3>Run the project in R</h3>
+    <ol class="steps">
+      <li>Install R (and optionally RStudio) from <b>cran.r-project.org</b>.</li>
+      <li>Open the <b>R Code</b> tab and click <b>Download library_catalog.R</b> (or copy the code into a new script in RStudio).</li>
+      <li>In RStudio press <b>Source</b>, or from a terminal run: <code>Rscript library_catalog.R</code></li>
+      <li>Edit the <code>books</code> list in the script — add or remove a book — and run again.</li>
+      <li>In the R console, type <code>str(books[[1]])</code> after sourcing the script to see one book's structure.</li>
+    </ol>
+    <p style="color:var(--muted)">Note: this dashboard re-implements the same logic in JavaScript so it can run live in a browser. The R script is the actual project; the dashboard is its visual front end.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= R SOURCE ================= -->
+<script type="text/plain" id="rsrc"># ==========================================================
+#  LIBRARY CATALOG  -  a very simple R project on LISTS
+#  Concepts: list(), $ and [[ ]], add / change / remove items,
+#            list of lists, sapply(), Filter(), for loop
+# ==========================================================
+
+list_or_none <- function(x) {
+  if (length(x) == 0) "None" else paste(x, collapse = ", ")
+}
+
+# ---------- 1. A SIMPLE LIST ----------
+info <- list(name = "City Library", city = "Chennai", open = TRUE,
+             sections = c("Fiction", "Science", "History"))
+
+cat("--- LIBRARY INFO ---\n")
+cat(sprintf("%-10s: %s\n", "Name", info$name))             # $ by name
+cat(sprintf("%-10s: %s\n", "City", info[["city"]]))        # [[ ]] by name
+cat(sprintf("%-10s: %s\n", "Section 2", info$sections[2])) # item inside an item
+
+info$members <- 250        # add a new item
+info$city    <- "Madurai"  # change an item
+info$open    <- NULL       # remove an item
+
+cat(sprintf("%-10s: %s\n", "New city", info$city))
+cat(sprintf("%-10s: %d\n", "Items", length(info)))
+cat(sprintf("%-10s: %s\n", "Item names", paste(names(info), collapse = ", ")))
+
+# ---------- 2. A LIST OF LISTS (each book is a list) ----------
+__BOOKS__
+
+# ---------- 3. LOOP OVER THE LIST ----------
+cat("\n--- BOOK CATALOG ---\n")
+for (i in seq_along(books)) {
+  b <- books[[i]]
+  status <- if (b$available) "Available" else "Issued"
+  cat(sprintf("%d. %-24s %-22s %4d %4d pages  %s\n",
+              i, b$title, b$author, b$year, b$pages, status))
+}
+
+# ---------- 4. ACCESSING ITEMS ----------
+cat("\n--- ACCESSING ITEMS ---\n")
+cat(sprintf("%-17s: %s\n", "First book title", books[[1]]$title))
+cat(sprintf("%-17s: %s\n", "Last book author", books[[length(books)]]$author))
+cat(sprintf("%-17s: %s\n", "Fields in a book", paste(names(books[[1]]), collapse = ", ")))
+
+# ---------- 5. sapply() : one field from every book ----------
+titles <- sapply(books, function(b) b$title)
+pages  <- sapply(books, function(b) b$pages)
+years  <- sapply(books, function(b) b$year)
+
+cat("\n--- USING sapply() ---\n")
+cat(sprintf("%-13s: %d\n", "Total books", length(books)))
+cat(sprintf("%-13s: %d\n", "Total pages", sum(pages)))
+cat(sprintf("%-13s: %.1f\n", "Average pages", mean(pages)))
+cat(sprintf("%-13s: %s (%d pages)\n", "Longest book", titles[which.max(pages)], max(pages)))
+cat(sprintf("%-13s: %s (%d)\n", "Oldest book", titles[which.min(years)], min(years)))
+
+# ---------- 6. Filter() : keep matching books ----------
+available_books <- Filter(function(b) b$available, books)
+issued_books    <- Filter(function(b) !b$available, books)
+modern_books    <- Filter(function(b) b$year >= 2000, books)
+
+cat("\n--- USING Filter() ---\n")
+cat(sprintf("%-13s: %d of %d\n", "Available", length(available_books), length(books)))
+cat(sprintf("%-13s: %s\n", "Issued",
+            list_or_none(sapply(issued_books, function(b) b$title))))
+cat(sprintf("%-13s: %s\n", "Since 2000",
+            list_or_none(sapply(modern_books, function(b) b$title))))
+
+# ---------- 7. ADD AND REMOVE (on a copy) ----------
+cat("\n--- ADD & REMOVE (on a copy) ---\n")
+demo <- books
+demo[[length(demo) + 1]] <- list(title = "Gitanjali", author = "Rabindranath Tagore",
+                                 year = 1910, pages = 104, available = TRUE)
+cat(sprintf("%-14s: %d\n", "After adding", length(demo)))
+demo[[1]] <- NULL
+cat(sprintf("%-14s: %d\n", "After removing", length(demo)))
+cat(sprintf("%-14s: %s\n", "First title", demo[[1]]$title))
+</script>
+
+<script>
+/* ============ DATA ============ */
+const INIT=[
+  {title:"The Alchemist",author:"Paulo Coelho",year:1988,pages:208,available:true},
+  {title:"Wings of Fire",author:"A.P.J. Abdul Kalam",year:1999,pages:180,available:true},
+  {title:"A Brief History of Time",author:"Stephen Hawking",year:1988,pages:212,available:false},
+  {title:"Sapiens",author:"Yuval Noah Harari",year:2011,pages:443,available:true},
+  {title:"Malgudi Days",author:"R.K. Narayan",year:1943,pages:256,available:false},
+  {title:"The Discovery of India",author:"Jawaharlal Nehru",year:1946,pages:595,available:true},
+  {title:"Atomic Habits",author:"James Clear",year:2018,pages:320,available:true},
+  {title:"Ponniyin Selvan",author:"Kalki Krishnamurthy",year:1955,pages:640,available:false}
+];
+let books=INIT.map(b=>({...b})), last="# Nothing yet - add, toggle or remove a book to see the matching R code";
+
+/* ============ HELPERS ============ */
+const $=id=>document.getElementById(id);
+const pad=(s,n)=>String(s).padEnd(n), lpad=(s,n)=>String(s).padStart(n);
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const whichMax=a=>{let b=0;a.forEach((v,i)=>{if(v>a[b])b=i;});return b;};
+const whichMin=a=>{let b=0;a.forEach((v,i)=>{if(v<a[b])b=i;});return b;};
+const listOrNone=a=>a.length?a.join(", "):"None";
+/* C-style %.1f (ties go to even, like R) */
+function fixed1(x){ const t=x*10, f=Math.floor(t); let n; if(Math.abs(t-f-0.5)<1e-9) n=(f%2===0)?f:f+1; else n=Math.round(t); return (n/10).toFixed(1); }
+const rs=s=>'"'+String(s).replace(/\\/g,"\\\\").replace(/"/g,'\\"')+'"';
+const bookR=b=>`list(title = ${rs(b.title)}, author = ${rs(b.author)}, year = ${b.year}, pages = ${b.pages}, available = ${b.available?"TRUE":"FALSE"})`;
+
+/* ============ RENDER ============ */
+function renderAll(){
+  const n=books.length, pages=books.map(b=>b.pages), years=books.map(b=>b.year), titles=books.map(b=>b.title);
+  const avail=books.filter(b=>b.available).length;
+  $("kpis").innerHTML=[
+    ["Total books",n,"length(books)"],
+    ["Available",avail,"Filter(available)"],
+    ["Issued",n-avail,"Filter(!available)"],
+    ["Total pages",sum(pages).toLocaleString("en-US"),"sum(pages)"],
+    ["Average pages",fixed1(sum(pages)/n),"mean(pages)"],
+    ["Longest book",pages[whichMax(pages)]+" pp",titles[whichMax(pages)]]
+  ].map(k=>`<div class="kpi"><div class="l">${k[0]}</div><div class="v">${k[1]}</div><div class="s" title="${esc(k[2])}">${esc(k[2])}</div></div>`).join("");
+  pagesChart(); availChart(avail); table(); fillAccess(); accessOut(); consoleOut(); setCode();
+  $("last").textContent=last;
+}
+
+function pagesChart(){
+  const W=560,L=150,rowH=30,H=books.length*rowH+8, mx=Math.max(...books.map(b=>b.pages));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pages per book">`;
+  books.forEach((b,i)=>{ const y=i*rowH+4, w=(W-L-50)*b.pages/mx, t=b.title.length>20?b.title.slice(0,19)+"…":b.title;
+    s+=`<text x="${L-8}" y="${y+16}" text-anchor="end">${esc(t)}</text><rect x="${L}" y="${y}" width="${Math.max(w,2)}" height="20" rx="4" fill="${b.available?"var(--good)":"var(--warn)"}"><title>${esc(b.title)}: ${b.pages} pages (${b.available?"Available":"Issued"})</title></rect><text x="${L+w+6}" y="${y+15}" style="fill:var(--ink);font-weight:600">${b.pages}</text>`; });
+  $("pagesChart").innerHTML=s+"</svg>";
+}
+
+function availChart(a){
+  const n=books.length, W=360, wa=W*a/n;
+  $("availChart").innerHTML=`<svg viewBox="0 0 ${W} 58" role="img" aria-label="Availability"><rect x="0" y="0" width="${W}" height="26" rx="6" fill="var(--warn)"/><rect x="0" y="0" width="${wa}" height="26" rx="6" fill="var(--good)"/><text x="0" y="46">${a} available</text><text x="${W}" y="46" text-anchor="end">${n-a} issued</text></svg>`;
+}
+
+function table(){
+  let h=`<thead><tr><th>#</th><th>Title</th><th>Author</th><th class="r">Year</th><th class="r">Pages</th><th>Status</th><th></th></tr></thead><tbody>`;
+  books.forEach((b,i)=>{
+    h+=`<tr><td>${i+1}</td><td><b>${esc(b.title)}</b></td><td>${esc(b.author)}</td><td class="num">${b.year}</td><td class="num">${b.pages}</td>
+    <td><button class="pill ${b.available?"yes":"no"}" data-t="${i}" title="Toggle availability">${b.available?"Available":"Issued"}</button></td>
+    <td><button class="x" data-d="${i}" title="Remove this book" ${books.length<2?"disabled":""}>✕</button></td></tr>`; });
+  $("tbl").innerHTML=h+"</tbody>";
+  $("tbl").querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.t; books[i].available=!books[i].available;
+    last=`books[[${i+1}]]$available <- !books[[${i+1}]]$available     # now ${books[i].available?"TRUE":"FALSE"}`; renderAll(); });
+  $("tbl").querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.d; const t=books[i].title;
+    books.splice(i,1); last=`books[[${i+1}]] <- NULL     # removed "${t}"`; renderAll(); });
+}
+
+/* access practice */
+function fillAccess(){
+  const sel=$("aIdx"), cur=+sel.value||1;
+  sel.innerHTML=books.map((b,i)=>`<option value="${i+1}">${i+1}</option>`).join("");
+  sel.value=String(Math.min(cur,books.length));
+}
+function accessOut(){
+  const i=+$("aIdx").value-1, f=$("aFld").value, b=books[i], v=b[f];
+  const show=typeof v==="string"?`"${v}"`:typeof v==="boolean"?(v?"TRUE":"FALSE"):String(v);
+  const kind=x=>typeof x==="string"?"chr":typeof x==="boolean"?"logi":"num";
+  const sv=x=>typeof x==="string"?`"${x}"`:typeof x==="boolean"?(x?"TRUE":"FALSE"):String(x);
+  const str=["List of 5",...["title","author","year","pages","available"].map(k=>` $ ${pad(k,9)}: ${kind(b[k])} ${sv(b[k])}`)].map(esc).join("\n");
+  $("acc").innerHTML=`<span class="cmd">&gt; books[[${i+1}]]$${f}</span>\n[1] ${esc(show)}\n\n<span class="cmd">&gt; str(books[[${i+1}]])</span>\n${str}`;
+}
+
+/* ============ CONSOLE (mirror of the R printing) ============ */
+function consoleOut(){
+  const o=[], n=books.length, titles=books.map(b=>b.title), pages=books.map(b=>b.pages), years=books.map(b=>b.year);
+  o.push("--- LIBRARY INFO ---",
+    pad("Name",10)+": City Library", pad("City",10)+": Chennai", pad("Section 2",10)+": Science",
+    pad("New city",10)+": Madurai", pad("Items",10)+": 4", pad("Item names",10)+": name, city, sections, members");
+  o.push("","--- BOOK CATALOG ---");
+  books.forEach((b,i)=>o.push(`${i+1}. ${pad(b.title,24)} ${pad(b.author,22)} ${lpad(b.year,4)} ${lpad(b.pages,4)} pages  ${b.available?"Available":"Issued"}`));
+  o.push("","--- ACCESSING ITEMS ---",
+    pad("First book title",17)+": "+books[0].title, pad("Last book author",17)+": "+books[n-1].author,
+    pad("Fields in a book",17)+": title, author, year, pages, available");
+  o.push("","--- USING sapply() ---",
+    pad("Total books",13)+": "+n, pad("Total pages",13)+": "+sum(pages), pad("Average pages",13)+": "+fixed1(sum(pages)/n),
+    pad("Longest book",13)+`: ${titles[whichMax(pages)]} (${Math.max(...pages)} pages)`,
+    pad("Oldest book",13)+`: ${titles[whichMin(years)]} (${Math.min(...years)})`);
+  const av=books.filter(b=>b.available).length;
+  o.push("","--- USING Filter() ---",
+    pad("Available",13)+`: ${av} of ${n}`,
+    pad("Issued",13)+": "+listOrNone(books.filter(b=>!b.available).map(b=>b.title)),
+    pad("Since 2000",13)+": "+listOrNone(books.filter(b=>b.year>=2000).map(b=>b.title)));
+  o.push("","--- ADD & REMOVE (on a copy) ---",
+    pad("After adding",14)+": "+(n+1), pad("After removing",14)+": "+n, pad("First title",14)+": "+(n>=2?books[1].title:"Gitanjali"));
+  $("console").textContent=o.join("\n");
+}
+
+/* ============ R CODE VIEW ============ */
+const SRC_T=$("rsrc").textContent.replace(/^\n/,"");
+let SRC="";
+function setCode(){
+  const bl="books <- list(\n"+books.map(b=>`  list(title = ${rs(b.title)}, author = ${rs(b.author)},\n       year = ${b.year}, pages = ${b.pages}, available = ${b.available?"TRUE":"FALSE"})`).join(",\n")+"\n)";
+  SRC=SRC_T.replace("__BOOKS__",()=>bl);
+  const e=SRC.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const re=/(#.*)|("(?:[^"\\\n]|\\.)*")|\b(function|if|else|for|while|repeat|break|next|return|in|TRUE|FALSE|NULL|NA)\b|\b([A-Za-z_.][A-Za-z0-9_.]*)(?=\()|(\b\d+(?:\.\d+)?\b)/g;
+  $("codeview").innerHTML=e.replace(re,(m,c,s,k,f,n)=>c?`<span class="c">${c}</span>`:s?`<span class="s">${s}</span>`:k?`<span class="k">${k}</span>`:f?`<span class="f">${f}</span>`:`<span class="n">${n}</span>`);
+}
+$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([SRC],{type:"text/plain"}));a.download="library_catalog.R";a.click();URL.revokeObjectURL(a.href);};
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText(SRC);$("cp").textContent="Copied ✓";}catch(e){$("cp").textContent="Select & copy manually";}setTimeout(()=>$("cp").textContent="Copy code",1800);};
+
+/* ============ EVENTS ============ */
+$("add").onclick=()=>{
+  const t=$("fT").value.trim(), a=$("fA").value.trim()||"Unknown", y=Math.round(+$("fY").value), p=Math.round(+$("fP").value);
+  let m="";
+  if(!t) m="Please enter a title."; else if(!(y>=1000&&y<=2100)) m="Year must be between 1000 and 2100."; else if(!(p>=1&&p<=5000)) m="Pages must be between 1 and 5000."; else if(books.length>=15) m="This demo holds at most 15 books.";
+  $("msg").textContent=m; if(m) return;
+  const b={title:t,author:a,year:y,pages:p,available:$("fV").checked};
+  books.push(b); last=`books[[${books.length}]] <- ${bookR(b)}`;
+  $("fT").value=""; $("fA").value=""; renderAll();
+};
+$("reset").onclick=()=>{ books=INIT.map(b=>({...b})); last="books <- list(...)     # back to the original 8 books"; $("msg").textContent=""; renderAll(); };
+$("aIdx").onchange=$("aFld").onchange=accessOut;
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("section.tab").forEach(s=>s.classList.toggle("on",s.id===b.dataset.t));
+});
+renderAll();
+</script>
+</body>
+</html>
